@@ -1,0 +1,11 @@
+/home/pecka/advent/bin/Debug/netcoreapp3.0/advent
+/home/pecka/advent/bin/Debug/netcoreapp3.0/advent.deps.json
+/home/pecka/advent/bin/Debug/netcoreapp3.0/advent.runtimeconfig.json
+/home/pecka/advent/bin/Debug/netcoreapp3.0/advent.runtimeconfig.dev.json
+/home/pecka/advent/bin/Debug/netcoreapp3.0/advent.dll
+/home/pecka/advent/bin/Debug/netcoreapp3.0/advent.pdb
+/home/pecka/advent/obj/Debug/netcoreapp3.0/advent.csprojAssemblyReference.cache
+/home/pecka/advent/obj/Debug/netcoreapp3.0/advent.AssemblyInfoInputs.cache
+/home/pecka/advent/obj/Debug/netcoreapp3.0/advent.AssemblyInfo.cs
+/home/pecka/advent/obj/Debug/netcoreapp3.0/advent.dll
+/home/pecka/advent/obj/Debug/netcoreapp3.0/advent.pdb

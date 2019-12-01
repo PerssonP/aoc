@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "/home/pecka/.dotnet/store/|arch|/|tfm|",
+      "/home/pecka/.nuget/packages"
+    ]
+  }
+}
