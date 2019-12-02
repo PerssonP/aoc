@@ -9,12 +9,7 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      List<string> inputs = getInputs("./day2/input.txt");
-      List<int> numbers = new List<string>(inputs[0].Split(',')).Select(x => int.Parse(x)).ToList();
-      numbers[1] = 12;
-      numbers[2] = 2;
-      int result = day2(numbers);
-      Console.WriteLine(result);
+      day2();
     }
 
     static void day1()
@@ -43,7 +38,33 @@ namespace advent
       Console.WriteLine(result);
     }
 
-    static int day2(List<int> input)
+    static void day2()
+    {
+      List<string> inputs = getInputs("./day2/input.txt");
+      List<int> numbers = new List<string>(inputs[0].Split(',')).Select(x => int.Parse(x)).ToList();
+      bool found = false;
+      for (int i = 0; i < 100; i++)
+      {
+        for (int j = 0; j < 100; j++)
+        {
+          List<int> inputnew = new List<int>(numbers);
+          inputnew[1] = i;
+          inputnew[2] = j;
+          int output = intcodes(inputnew);
+          Console.WriteLine(output);
+          if (output == 19690720)
+          {
+            Console.WriteLine("Answer found:");
+            Console.WriteLine(i + " " + j);
+            Console.WriteLine((100 * i) + j);
+            found = true;
+            break;
+          }
+        }
+        if (found) break;
+      }
+    }
+    static int intcodes(List<int> input)
     {
       for (int i = 0; i < input.Count; i += 4)
       {
