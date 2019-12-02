@@ -9,8 +9,14 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      day1();
+      List<string> inputs = getInputs("./day2/input.txt");
+      List<int> numbers = new List<string>(inputs[0].Split(',')).Select(x => int.Parse(x)).ToList();
+      numbers[1] = 12;
+      numbers[2] = 2;
+      int result = day2(numbers);
+      Console.WriteLine(result);
     }
+
     static void day1()
     {
       List<string> inputs = getInputs("./day1/input.txt");
@@ -36,6 +42,31 @@ namespace advent
       }
       Console.WriteLine(result);
     }
+
+    static int day2(List<int> input)
+    {
+      for (int i = 0; i < input.Count; i += 4)
+      {
+        int op = input[i];
+        if (op == 99)
+        {
+          break;
+        }
+        int input1 = input[input[i + 1]];
+        int input2 = input[input[i + 2]];
+        int target = input[i + 3];
+        if (op == 1)
+        {
+          input[target] = input1 + input2;
+        }
+        else if (op == 2)
+        {
+          input[target] = input1 * input2;
+        }
+      }
+      return input[0];
+    }
+
     static List<string> getInputs(string path)
     {
       List<string> inputs = new List<string>();
