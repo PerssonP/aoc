@@ -109,7 +109,7 @@ namespace advent
         int b = coords2.FindIndex(c => c.x == cross.x && c.y == cross.y);
         costs.Add(a + b);
       }
-      Console.WriteLine(costs.Min() + 1); //Fel????
+      Console.WriteLine(costs.Min() + 2); //Fel????
     }
 
     static List<(int x, int y)> getCoordinates(List<string> wire)
