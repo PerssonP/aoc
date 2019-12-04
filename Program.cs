@@ -9,7 +9,7 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      day2();
+      day3();
     }
 
     static void day1()
@@ -86,6 +86,64 @@ namespace advent
         }
       }
       return input[0];
+    }
+
+    static void day3()
+    {
+      List<string> inputs = getInputs("./day3/input.txt");
+      List<string> wire1 = new List<string>(inputs[0].Split(','));
+      List<string> wire2 = new List<string>(inputs[1].Split(','));
+      var coords1 = getCoordinates(wire1);
+      var coords2 = getCoordinates(wire2);
+      var intersections = coords1.Intersect(coords2);
+      /* Part 1 result
+      List<int> distances = new List<int>();
+      foreach (var cross in intersections)
+        distances.Add(Math.Abs(cross.x) + Math.Abs(cross.y));
+      Console.WriteLine(distances.Min());
+      */
+      List<int> costs = new List<int>(intersections.Count());
+      foreach (var cross in intersections)
+      {
+        int a = coords1.FindIndex(c => c.x == cross.x && c.y == cross.y);
+        int b = coords2.FindIndex(c => c.x == cross.x && c.y == cross.y);
+        costs.Add(a + b);
+      }
+      Console.WriteLine(costs.Min() + 1); //Fel????
+    }
+
+    static List<(int x, int y)> getCoordinates(List<string> wire)
+    {
+      List<(int x, int y)> coordinates = new List<(int x, int y)>();
+      (int x, int y) prev = (x: 0, y: 0);
+      foreach(string instruction in wire)
+      {
+        char direction = instruction[0];
+        int length = int.Parse(instruction.Substring(1));
+        switch (direction)
+        {
+          case 'L':
+            for (int i = prev.x - 1; i >= prev.x - length; i--)
+              coordinates.Add((i, prev.y));
+            break;
+          case 'R':
+            for (int i = prev.x + 1; i <= prev.x + length; i++)
+              coordinates.Add((i, prev.y));
+            break;
+          case 'U':
+            for (int i = prev.y + 1; i <= prev.y + length; i++)
+              coordinates.Add((prev.x, i));
+            break;
+          case 'D':
+            for (int i = prev.y - 1; i >= prev.y - length; i--)
+              coordinates.Add((prev.x, i));
+            break;
+          default:
+            throw new Exception("Uhoh.");
+        }
+        prev = coordinates.Last();
+      }
+      return coordinates;
     }
 
     static List<string> getInputs(string path)
