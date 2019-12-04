@@ -9,7 +9,7 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      day3();
+      day4();
     }
 
     static void day1()
@@ -109,7 +109,7 @@ namespace advent
         int b = coords2.FindIndex(c => c.x == cross.x && c.y == cross.y);
         costs.Add(a + b);
       }
-      Console.WriteLine(costs.Min() + 2); //Fel????
+      Console.WriteLine(costs.Min() + 2);
     }
 
     static List<(int x, int y)> getCoordinates(List<string> wire)
@@ -144,6 +144,55 @@ namespace advent
         prev = coordinates.Last();
       }
       return coordinates;
+    }
+
+    static void day4()
+    {
+      // Input:
+      // 307237-769058
+      IEnumerable<int> input = Enumerable.Range(307237, 769058 - 307237);
+      List<int> possibles = new List<int>();
+      foreach (int test in input)
+      {
+        int[] ints = test.ToString().Select(c => (int) char.GetNumericValue(c)).ToArray();
+        if (ints[0] == ints[1]
+          || ints[1] == ints[2]
+          || ints[2] == ints[3]
+          || ints[3] == ints[4]
+          || ints[4] == ints[5])
+        {
+          if (ints[0] <= ints[1]
+            && ints[1] <= ints[2]
+            && ints[2] <= ints[3]
+            && ints[3] <= ints[4]
+            && ints[4] <= ints[5])
+          {
+            possibles.Add(test);
+          }
+        }
+      }
+      Console.WriteLine(possibles.Count()); // Part 1 result
+      List<int> newPossibles = new List<int>();
+      foreach (int test in possibles)
+      {
+        int[] ints = test.ToString().Select(c => (int) char.GetNumericValue(c)).ToArray();
+        var grouped = ints.GroupBy(x => x);
+        bool bad = false;
+        foreach (var group in grouped)
+        {
+          if (group.Count() > 2) 
+          {
+            bad = true;
+          }
+          else if (group.Count() == 2)
+          {
+            bad = false;
+            break;
+          }
+        }
+        if (!bad) newPossibles.Add(test);
+      }
+      Console.WriteLine(newPossibles.Count()); // Part 2 result
     }
 
     static List<string> getInputs(string path)
