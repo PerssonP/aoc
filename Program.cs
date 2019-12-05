@@ -9,7 +9,7 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      day4();
+      day5();
     }
 
     static void day1()
@@ -193,6 +193,115 @@ namespace advent
         if (!bad) newPossibles.Add(test);
       }
       Console.WriteLine(newPossibles.Count()); // Part 2 result
+    }
+
+    static void day5()
+    {
+      List<string> inputs = getInputs("./day5/input.txt");
+      List<int> numbers = new List<string>(inputs[0].Split(',')).Select(x => int.Parse(x)).ToList();
+      intcodes2(numbers);
+    }
+
+    static void intcodes2(List<int> input)
+    {
+      int i = 0;
+      while(i < input.Count)
+      {
+        int[] instruction = input[i].ToString().PadLeft(5, '0').Select(c => (int)char.GetNumericValue(c)).ToArray();
+        string modeThird = instruction[0] == 0 ? "pos" : "imm";
+        string modeSecond = instruction[1] == 0 ? "pos" : "imm";
+        string modeFirst = instruction[2] == 0 ? "pos" : "imm";
+        int op = int.Parse(string.Concat(instruction[3], instruction[4]));
+
+        int input1, input2, target;
+        switch (op)
+        {
+          case 1: // addition
+            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
+            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
+            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
+            input[target] = input1 + input2;
+            i += 4;
+            break;
+          case 2: // multiplication
+            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
+            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
+            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
+            input[target] = input1 * input2;
+            i += 4;
+            break;
+          case 3: // read
+            Console.Write("Enter input:");
+            int consoleInput;
+            if(!int.TryParse(Console.ReadLine(), out consoleInput)) throw new Exception("Invalid input, should be integer");
+            target = modeFirst == "pos" ? input[i + 1] : throw new Exception("Target should never be in immediate mode");
+            input[target] = consoleInput;
+            i += 2;
+            break;
+          case 4: // write
+            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
+            Console.WriteLine($"Output: {input1}");
+            i += 2;
+            break;
+          case 5: // jump-if-true
+            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
+            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
+            if (input1 != 0)
+            {
+              i = input2;
+            }
+            else
+            {
+              i += 3;
+            }
+            break;
+          case 6: // jump-if-false
+            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
+            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
+            if (input1 == 0)
+            {
+              i = input2;
+            }
+            else
+            {
+              i += 3;
+            }
+            break;
+          case 7: // less than
+            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
+            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
+            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
+            if (input1 < input2)
+            {
+              input[target] = 1;
+            }
+            else
+            {
+              input[target] = 0;
+            }
+            i += 4;
+            break;
+          case 8: // equals
+            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
+            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
+            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
+            if (input1 == input2)
+            {
+              input[target] = 1;
+            }
+            else
+            {
+              input[target] = 0;
+            }
+            i += 4;
+            break;
+          case 99:
+            Console.WriteLine("Halting...");
+            return;
+          default:
+            throw new Exception("Invalid op-code");
+        }
+      }
     }
 
     static List<string> getInputs(string path)
