@@ -9,7 +9,7 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      day5();
+      day6();
     }
 
     static void day1()
@@ -302,6 +302,39 @@ namespace advent
             throw new Exception("Invalid op-code");
         }
       }
+    }
+
+    static void day6()
+    {
+      Dictionary<string, string> orbits = getInputs("./day6/input.txt").Select(x => x.Split(')')).ToDictionary(orbit => orbit[1], orbit => orbit[0]);
+
+      int sum = 0;
+      foreach (string key in orbits.Keys)
+      {
+        sum += getAncestors(orbits, key).Count;
+      }
+      Console.WriteLine(sum); // Part 1
+
+      Stack<string> ancestorsYOU = new Stack<string>(getAncestors(orbits, "YOU"));
+      Stack<string> ancestorsSAN = new Stack<string>(getAncestors(orbits, "SAN"));
+      while (ancestorsYOU.Peek() == ancestorsSAN.Peek())
+      {
+        ancestorsYOU.Pop();
+        ancestorsSAN.Pop();
+      }
+      Console.WriteLine(ancestorsYOU.Count + ancestorsSAN.Count); // Part 2
+    }
+
+    static List<string> getAncestors(Dictionary<string, string> orbits, string start)
+    {
+      List<string> list = new List<string>();
+      string parent = orbits.GetValueOrDefault(start, null);
+      while(parent != null)
+      {
+        list.Add(parent);
+        parent = orbits.GetValueOrDefault(parent, null);
+      }
+      return list;
     }
 
     static List<string> getInputs(string path)
