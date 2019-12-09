@@ -339,18 +339,27 @@ namespace advent
 
     static void day7()
     {
-      List<int> inputs = getInputs("./day7/input.txt")[0].Split(',').Select(x => int.Parse(x)).ToList();
+      int[] inputs = getInputs("./day7/input.txt")[0].Split(',').Select(x => int.Parse(x)).ToArray();
 
-      IEnumerable<int[]> settings = GetPermutations(new int[]{ 0, 1, 2, 3, 4 }, 5).Select(x => x.ToArray());
+      IEnumerable<int[]> settings = GetPermutations(new int[] { 0, 1, 2, 3, 4 }, 5).Select(x => x.ToArray());
       List<int> results = new List<int>();
       foreach (int[] setting in settings)
       {
-        int output1 = (int)intcodes3(new List<int>(inputs), new int[] { setting[0], 0 }, true);
-        int output2 = (int)intcodes3(new List<int>(inputs), new int[] { setting[1], output1 }, true);
-        int output3 = (int)intcodes3(new List<int>(inputs), new int[] { setting[2], output2 }, true);
-        int output4 = (int)intcodes3(new List<int>(inputs), new int[] { setting[3], output3 }, true);
-        int output5 = (int)intcodes3(new List<int>(inputs), new int[] { setting[4], output4 }, true);
-        results.Add(output5);
+        Intcodes4[] comps = Enumerable.Range(0, 5).Select(x => new Intcodes4(inputs, x + 1, false)).ToArray();
+
+        for(int i = 0; i < comps.Count(); i++)
+        {
+          comps[i].input.Enqueue(setting[i]);
+        }
+        int input = 0;
+        foreach (Intcodes4 comp in comps)
+        {
+          comp.input.Enqueue(input);
+          comp.runToEnd();
+          input = comp.output.Dequeue();
+        }
+        
+        results.Add(input);
       }
       Console.WriteLine($"Part 1 result: {results.Max()}");
 
@@ -358,33 +367,24 @@ namespace advent
       results = new List<int>();
       foreach (int[] setting in settings)
       {
-        Intcodes4 comp1 = new Intcodes4(inputs.ToArray(), 1, false);
-        Intcodes4 comp2 = new Intcodes4(inputs.ToArray(), 2, false);
-        Intcodes4 comp3 = new Intcodes4(inputs.ToArray(), 3, false);
-        Intcodes4 comp4 = new Intcodes4(inputs.ToArray(), 4, false);
-        Intcodes4 comp5 = new Intcodes4(inputs.ToArray(), 5, false);
+        Intcodes4[] comps = Enumerable.Range(0, 5).Select(x => new Intcodes4(inputs, x + 1, false)).ToArray();
 
-        comp1.input = comp5.output;
-        comp2.input = comp1.output;
-        comp3.input = comp2.output;
-        comp4.input = comp3.output;
-        comp5.input = comp4.output;
+        for (int i = 0; i < comps.Count(); i++)
+        {
+          comps[i].input = comps[i - 1 < 0 ? comps.Count() - 1 : i - 1].output;
+          comps[i].input.Enqueue(setting[i]);
+        }
 
-        comp1.input.Enqueue(setting[0]);
-        comp2.input.Enqueue(setting[1]);
-        comp3.input.Enqueue(setting[2]);
-        comp4.input.Enqueue(setting[3]);
-        comp5.input.Enqueue(setting[4]);
+        comps[0].input.Enqueue(0);
 
-        comp1.input.Enqueue(0);
-        
         bool incomplete = true;
         while (incomplete)
         {
-          incomplete = comp1.step() | comp2.step() | comp3.step() | comp4.step() | comp5.step();
+          incomplete = false;
+          foreach (Intcodes4 comp in comps) incomplete |= comp.step();
         }
 
-        results.Add(comp5.output.Dequeue());
+        results.Add(comps[comps.Count() - 1].output.Dequeue());
       }
       Console.WriteLine($"Part 2 result: {results.Max()}");
     }
@@ -529,9 +529,18 @@ namespace advent
 
       public Intcodes4(int[] input, int id, bool debug)
       {
-        instructions = input;
+        instructions = input.ToArray(); //Copying input-array
         this.id = id;
         this.debug = debug;
+      }
+
+      public void runToEnd()
+      {
+        bool incomplete = true;
+        while (incomplete)
+        {
+          incomplete = this.step();
+        }
       }
 
       public bool step()
