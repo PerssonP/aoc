@@ -9,7 +9,7 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      day6();
+      day7();
     }
 
     static void day1()
@@ -335,6 +335,152 @@ namespace advent
         parent = orbits.GetValueOrDefault(parent, null);
       }
       return list;
+    }
+
+    static void day7()
+    {
+      List<int> inputs = getInputs("./day7/input.txt")[0].Split(',').Select(x => int.Parse(x)).ToList();
+
+      IEnumerable<int[]> settings = GetPermutations(new int[]{ 0, 1, 2, 3, 4 }, 5).Select(x => x.ToArray());
+      List<int> results = new List<int>();
+      foreach (int[] setting in settings)
+      {
+        int output1 = (int)intcodes3(inputs, new int[] { setting[0], 0 }, true);
+        int output2 = (int)intcodes3(inputs, new int[] { setting[1], output1 }, true);
+        int output3 = (int)intcodes3(inputs, new int[] { setting[2], output2 }, true);
+        int output4 = (int)intcodes3(inputs, new int[] { setting[3], output3 }, true);
+        int output5 = (int)intcodes3(inputs, new int[] { setting[4], output4 }, true);
+        results.Add(output5);
+      }
+      Console.WriteLine($"Result: {results.Max()}");
+    }
+
+    static IEnumerable<IEnumerable<int>> GetPermutations(int[] list, int length)
+    {
+      if (length == 1) return list.Select(i => new int[] { i });
+
+      return GetPermutations(list, length - 1)
+          .SelectMany(x => list.Where(e => !x.Contains(e)),
+              (x1, x2) => x1.Concat(new int[] { x2 }));
+    }
+
+    static int? intcodes3(List<int> instructions, int[] inputs, bool returnOnFirstOutput)
+    {
+      int read = 0;
+      int i = 0;
+      while (i < instructions.Count)
+      {
+        int[] instruction = instructions[i].ToString().PadLeft(5, '0').Select(c => (int)char.GetNumericValue(c)).ToArray();
+        string modeThird = instruction[0] == 0 ? "pos" : "imm";
+        string modeSecond = instruction[1] == 0 ? "pos" : "imm";
+        string modeFirst = instruction[2] == 0 ? "pos" : "imm";
+        int op = int.Parse(string.Concat(instruction[3], instruction[4]));
+
+        int input1, input2, target;
+        switch (op)
+        {
+          case 1: // addition
+            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
+            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
+            instructions[target] = input1 + input2;
+            i += 4;
+            break;
+          case 2: // multiplication
+            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
+            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
+            instructions[target] = input1 * input2;
+            i += 4;
+            break;
+          case 3: // read
+            int consoleInput;
+            if (inputs != null && read < inputs.Length)
+            {
+              consoleInput = inputs[read];
+              read++;  
+            }
+            else
+            {
+              Console.Write("Enter input:");
+              if (!int.TryParse(Console.ReadLine(), out consoleInput)) throw new Exception("Invalid input, should be integer");
+            }
+            target = modeFirst == "pos" ? instructions[i + 1] : throw new Exception("Target should never be in immediate mode");
+            instructions[target] = consoleInput;
+            i += 2;
+            break;
+          case 4: // write
+            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
+            if (returnOnFirstOutput)
+            {
+              return input1;
+            }
+            else
+            {
+              Console.WriteLine($"Output: {input1}");
+            }
+            i += 2;
+            break;
+          case 5: // jump-if-true
+            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
+            if (input1 != 0)
+            {
+              i = input2;
+            }
+            else
+            {
+              i += 3;
+            }
+            break;
+          case 6: // jump-if-false
+            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
+            if (input1 == 0)
+            {
+              i = input2;
+            }
+            else
+            {
+              i += 3;
+            }
+            break;
+          case 7: // less than
+            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
+            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
+            if (input1 < input2)
+            {
+              instructions[target] = 1;
+            }
+            else
+            {
+              instructions[target] = 0;
+            }
+            i += 4;
+            break;
+          case 8: // equals
+            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
+            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
+            if (input1 == input2)
+            {
+              instructions[target] = 1;
+            }
+            else
+            {
+              instructions[target] = 0;
+            }
+            i += 4;
+            break;
+          case 99:
+            Console.WriteLine("Halting...");
+            return null;
+          default:
+            throw new Exception($"Invalid op-code: {op}");
+        }
+      }
+      return null;
     }
 
     static List<string> getInputs(string path)
