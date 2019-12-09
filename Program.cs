@@ -345,14 +345,48 @@ namespace advent
       List<int> results = new List<int>();
       foreach (int[] setting in settings)
       {
-        int output1 = (int)intcodes3(inputs, new int[] { setting[0], 0 }, true);
-        int output2 = (int)intcodes3(inputs, new int[] { setting[1], output1 }, true);
-        int output3 = (int)intcodes3(inputs, new int[] { setting[2], output2 }, true);
-        int output4 = (int)intcodes3(inputs, new int[] { setting[3], output3 }, true);
-        int output5 = (int)intcodes3(inputs, new int[] { setting[4], output4 }, true);
+        int output1 = (int)intcodes3(new List<int>(inputs), new int[] { setting[0], 0 }, true);
+        int output2 = (int)intcodes3(new List<int>(inputs), new int[] { setting[1], output1 }, true);
+        int output3 = (int)intcodes3(new List<int>(inputs), new int[] { setting[2], output2 }, true);
+        int output4 = (int)intcodes3(new List<int>(inputs), new int[] { setting[3], output3 }, true);
+        int output5 = (int)intcodes3(new List<int>(inputs), new int[] { setting[4], output4 }, true);
         results.Add(output5);
       }
-      Console.WriteLine($"Result: {results.Max()}");
+      Console.WriteLine($"Part 1 result: {results.Max()}");
+
+      settings = GetPermutations(new int[] { 5, 6, 7, 8, 9 }, 5).Select(x => x.ToArray());
+      results = new List<int>();
+      foreach (int[] setting in settings)
+      {
+        Intcodes4 comp1 = new Intcodes4(inputs.ToArray(), 1, false);
+        Intcodes4 comp2 = new Intcodes4(inputs.ToArray(), 2, false);
+        Intcodes4 comp3 = new Intcodes4(inputs.ToArray(), 3, false);
+        Intcodes4 comp4 = new Intcodes4(inputs.ToArray(), 4, false);
+        Intcodes4 comp5 = new Intcodes4(inputs.ToArray(), 5, false);
+
+        comp1.input = comp5.output;
+        comp2.input = comp1.output;
+        comp3.input = comp2.output;
+        comp4.input = comp3.output;
+        comp5.input = comp4.output;
+
+        comp1.input.Enqueue(setting[0]);
+        comp2.input.Enqueue(setting[1]);
+        comp3.input.Enqueue(setting[2]);
+        comp4.input.Enqueue(setting[3]);
+        comp5.input.Enqueue(setting[4]);
+
+        comp1.input.Enqueue(0);
+        
+        bool incomplete = true;
+        while (incomplete)
+        {
+          incomplete = comp1.step() | comp2.step() | comp3.step() | comp4.step() | comp5.step();
+        }
+
+        results.Add(comp5.output.Dequeue());
+      }
+      Console.WriteLine($"Part 2 result: {results.Max()}");
     }
 
     static IEnumerable<IEnumerable<int>> GetPermutations(int[] list, int length)
@@ -481,6 +515,132 @@ namespace advent
         }
       }
       return null;
+    }
+
+    class Intcodes4 {
+      
+      private int id;
+      private bool debug;
+      private bool halted = false;
+      private int[] instructions;
+      private int cnt = 0;
+      public Queue<int> input = new Queue<int>();
+      public Queue<int> output = new Queue<int>();
+
+      public Intcodes4(int[] input, int id, bool debug)
+      {
+        instructions = input;
+        this.id = id;
+        this.debug = debug;
+      }
+
+      public bool step()
+      {
+        if (halted) return false;
+        if (debug) Console.WriteLine($"Machine #{id}: Running instruction #{cnt}");
+        int[] instruction = instructions[cnt].ToString().PadLeft(5, '0').Select(c => (int)char.GetNumericValue(c)).ToArray();
+        string modeThird = instruction[0] == 0 ? "pos" : "imm";
+        string modeSecond = instruction[1] == 0 ? "pos" : "imm";
+        string modeFirst = instruction[2] == 0 ? "pos" : "imm";
+        int op = int.Parse(string.Concat(instruction[3], instruction[4]));
+
+        int input1, input2, target;
+        switch (op)
+        {
+          case 1: // addition
+            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
+            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
+            instructions[target] = input1 + input2;
+            cnt += 4;
+            break;
+          case 2: // multiplication
+            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
+            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
+            instructions[target] = input1 * input2;
+            cnt += 4;
+            break;
+          case 3: // read
+            int consoleInput;
+            if (input.Count > 0)
+            {
+              consoleInput = input.Dequeue();
+              target = modeFirst == "pos" ? instructions[cnt + 1] : throw new Exception("Target should never be in immediate mode");
+              instructions[target] = consoleInput;
+              cnt += 2;
+            }
+            else
+            {
+              if (debug) Console.WriteLine($"Machine #{id}: Waiting for input");
+            }
+            break;
+          case 4: // write
+            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
+            output.Enqueue(input1);
+            cnt += 2;
+            break;
+          case 5: // jump-if-true
+            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
+            if (input1 != 0)
+            {
+              cnt = input2;
+            }
+            else
+            {
+              cnt += 3;
+            }
+            break;
+          case 6: // jump-if-false
+            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
+            if (input1 == 0)
+            {
+              cnt = input2;
+            }
+            else
+            {
+              cnt += 3;
+            }
+            break;
+          case 7: // less than
+            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
+            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
+            if (input1 < input2)
+            {
+              instructions[target] = 1;
+            }
+            else
+            {
+              instructions[target] = 0;
+            }
+            cnt += 4;
+            break;
+          case 8: // equals
+            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
+            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
+            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
+            if (input1 == input2)
+            {
+              instructions[target] = 1;
+            }
+            else
+            {
+              instructions[target] = 0;
+            }
+            cnt += 4;
+            break;
+          case 99:
+            if (debug) Console.WriteLine($"Machine #{id}: Halting...");
+            halted = true;
+            return false;
+          default:
+            throw new Exception($"Invalid op-code: {op}");
+        }
+        return true;
+      }
     }
 
     static List<string> getInputs(string path)
