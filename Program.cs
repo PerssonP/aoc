@@ -9,7 +9,7 @@ namespace advent
   {
     static void Main(string[] args)
     {
-      day7();
+      day8();
     }
 
     static void day1()
@@ -518,7 +518,6 @@ namespace advent
     }
 
     class Intcodes4 {
-      
       private int id;
       private bool debug;
       private bool halted = false;
@@ -649,6 +648,86 @@ namespace advent
             throw new Exception($"Invalid op-code: {op}");
         }
         return true;
+      }
+    }
+
+    static void day8()
+    {
+      //IEnumerable<int> inputs = getInputs("./day8/input.txt")[0].Split(',').Select(x => int.Parse(x)).ToList();
+      IEnumerable<int> inputs = getInputs("./day8/input.txt")[0].ToCharArray().Select(x => (int)Char.GetNumericValue(x)).ToList();
+      IEnumerator<int> enumerator = inputs.GetEnumerator();
+      //List<int[,]> layers = new List<int[,]>();
+      //List<int> layersZeroes = new List<int>();
+      List<(int[,] map, int zeroes)> layers = new List<(int[,], int)>();
+      bool hasNext = enumerator.MoveNext();
+
+      while (hasNext)
+      {
+        int[,] map = new int[25, 6];
+        int size = map.GetLength(0) * map.GetLength(1);
+        int x = 0, y = 0;
+        int zeroes = 0;
+        for (int i = 0; i < size; i++)
+        {
+          map[x, y] = enumerator.Current;
+          if (enumerator.Current == 0) zeroes++;
+          hasNext = enumerator.MoveNext();
+          x++;
+          if (x == 25)
+          {
+            x = 0;
+            y++;
+          }
+        }
+        layers.Add((map, zeroes));
+      }
+
+      var a = layers.Min(x => x.zeroes);
+      var minZeroes = layers.SingleOrDefault(x => x.zeroes == layers.Min(x => x.zeroes));
+      int countOnes = 0;
+      int countTwos = 0;
+      for (int i = 0; i < minZeroes.map.GetLength(1); i++)
+      {
+        for (int j = 0; j < minZeroes.map.GetLength(0); j++)
+        {
+          if (minZeroes.map[j, i] == 1) countOnes++;
+          if (minZeroes.map[j, i] == 2) countTwos++;
+        }
+      }
+      Console.WriteLine(countOnes * countTwos); // Part 1
+      
+      int[,] final = new int[25, 6];
+      for (int count = layers.Count - 1; count >= 0; count--)
+      {
+        var layer = layers[count];
+        int x = 0, y = 0;
+        for (int i = 0; i < 150; i++)
+        {
+          int value = layer.map[x, y];
+          if (value != 2) final[x, y] = value;
+          x++;
+          if (x == 25)
+          {
+            x = 0;
+            y++;
+          }
+        }
+      }
+
+      for (int i = 0; i < 6; i++)
+      {
+        for (int j = 0; j < 25; j++)
+        {
+          if (final[j, i] == 0)
+          {
+            Console.Write(' ');
+          }
+          else
+          {
+            Console.Write(final[j, i]);
+          }
+        }
+        Console.WriteLine();
       }
     }
 
