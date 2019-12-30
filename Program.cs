@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 
+using Intcodes;
+
 namespace advent
 {
   class Program
@@ -41,53 +43,35 @@ namespace advent
 
     static void day2()
     {
-      List<string> inputs = getInputs("./day2/input.txt");
-      List<int> numbers = new List<string>(inputs[0].Split(',')).Select(x => int.Parse(x)).ToList();
+      long[] inputs = getInputs("./day2/input.txt")[0].Split(',').Select(x => long.Parse(x)).ToArray();
+
+      inputs[1] = 12;
+      inputs[2] = 2;
+      IntcodeMachine machine = new IntcodeMachine(inputs);
+      machine.runToEnd();
+      Console.WriteLine($"Part 1: {machine.memory[0]}"); // Part 1. Answer: 7210630
+
       bool found = false;
       for (int i = 0; i < 100; i++)
       {
         for (int j = 0; j < 100; j++)
         {
-          List<int> inputnew = new List<int>(numbers);
-          inputnew[1] = i;
-          inputnew[2] = j;
-          int output = intcodes(inputnew);
-          Console.WriteLine(output);
+          inputs[1] = i;
+          inputs[2] = j;
+          machine = new IntcodeMachine(inputs);
+          machine.runToEnd();
+          long output = machine.memory[0];
           if (output == 19690720)
           {
             Console.WriteLine("Answer found:");
             Console.WriteLine(i + " " + j);
-            Console.WriteLine((100 * i) + j);
+            Console.WriteLine((100 * i) + j); // Part 2. Answer: 3892
             found = true;
             break;
           }
         }
         if (found) break;
       }
-    }
-
-    static int intcodes(List<int> input)
-    {
-      for (int i = 0; i < input.Count; i += 4)
-      {
-        int op = input[i];
-        if (op == 99)
-        {
-          break;
-        }
-        int input1 = input[input[i + 1]];
-        int input2 = input[input[i + 2]];
-        int target = input[i + 3];
-        if (op == 1)
-        {
-          input[target] = input1 + input2;
-        }
-        else if (op == 2)
-        {
-          input[target] = input1 * input2;
-        }
-      }
-      return input[0];
     }
 
     static void day3()
@@ -199,111 +183,16 @@ namespace advent
 
     static void day5()
     {
-      List<string> inputs = getInputs("./day5/input.txt");
-      List<int> numbers = new List<string>(inputs[0].Split(',')).Select(x => int.Parse(x)).ToList();
-      intcodes2(numbers);
-    }
+      long[] inputs = getInputs("./day5/input.txt")[0].Split(',').Select(x => long.Parse(x)).ToArray();
+      IntcodeMachine machine = new IntcodeMachine(inputs);
+      machine.input.Enqueue(1);
+      machine.runToEnd();
+      machine.printOutput(); // Part 1. Answer: 7988899
 
-    static void intcodes2(List<int> input)
-    {
-      int i = 0;
-      while(i < input.Count)
-      {
-        int[] instruction = input[i].ToString().PadLeft(5, '0').Select(c => (int)char.GetNumericValue(c)).ToArray();
-        string modeThird = instruction[0] == 0 ? "pos" : "imm";
-        string modeSecond = instruction[1] == 0 ? "pos" : "imm";
-        string modeFirst = instruction[2] == 0 ? "pos" : "imm";
-        int op = int.Parse(string.Concat(instruction[3], instruction[4]));
-
-        int input1, input2, target;
-        switch (op)
-        {
-          case 1: // addition
-            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
-            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
-            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
-            input[target] = input1 + input2;
-            i += 4;
-            break;
-          case 2: // multiplication
-            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
-            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
-            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
-            input[target] = input1 * input2;
-            i += 4;
-            break;
-          case 3: // read
-            Console.Write("Enter input:");
-            int consoleInput;
-            if(!int.TryParse(Console.ReadLine(), out consoleInput)) throw new Exception("Invalid input, should be integer");
-            target = modeFirst == "pos" ? input[i + 1] : throw new Exception("Target should never be in immediate mode");
-            input[target] = consoleInput;
-            i += 2;
-            break;
-          case 4: // write
-            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
-            Console.WriteLine($"Output: {input1}");
-            i += 2;
-            break;
-          case 5: // jump-if-true
-            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
-            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
-            if (input1 != 0)
-            {
-              i = input2;
-            }
-            else
-            {
-              i += 3;
-            }
-            break;
-          case 6: // jump-if-false
-            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
-            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
-            if (input1 == 0)
-            {
-              i = input2;
-            }
-            else
-            {
-              i += 3;
-            }
-            break;
-          case 7: // less than
-            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
-            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
-            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
-            if (input1 < input2)
-            {
-              input[target] = 1;
-            }
-            else
-            {
-              input[target] = 0;
-            }
-            i += 4;
-            break;
-          case 8: // equals
-            input1 = modeFirst == "pos" ? input[input[i + 1]] : input[i + 1];
-            input2 = modeSecond == "pos" ? input[input[i + 2]] : input[i + 2];
-            target = modeThird == "pos" ? input[i + 3] : throw new Exception("Target should never be in immediate mode");
-            if (input1 == input2)
-            {
-              input[target] = 1;
-            }
-            else
-            {
-              input[target] = 0;
-            }
-            i += 4;
-            break;
-          case 99:
-            Console.WriteLine("Halting...");
-            return;
-          default:
-            throw new Exception("Invalid op-code");
-        }
-      }
+      machine = new IntcodeMachine(inputs);
+      machine.input.Enqueue(5);
+      machine.runToEnd();
+      machine.printOutput(); // Part 2. Answer: 13758663
     }
 
     static void day6()
@@ -341,20 +230,20 @@ namespace advent
 
     static void day7()
     {
-      int[] inputs = getInputs("./day7/input.txt")[0].Split(',').Select(x => int.Parse(x)).ToArray();
+      long[] inputs = getInputs("./day7/input.txt")[0].Split(',').Select(x => long.Parse(x)).ToArray();
 
       IEnumerable<int[]> settings = GetPermutations(new int[] { 0, 1, 2, 3, 4 }, 5).Select(x => x.ToArray());
-      List<int> results = new List<int>();
+      List<long> results = new List<long>();
       foreach (int[] setting in settings)
       {
-        Intcodes4[] comps = Enumerable.Range(0, 5).Select(x => new Intcodes4(inputs, x + 1, false)).ToArray();
+        IntcodeMachine[] comps = Enumerable.Range(0, 5).Select(x => new IntcodeMachine(inputs, x + 1, false)).ToArray();
 
         for(int i = 0; i < comps.Count(); i++)
         {
           comps[i].input.Enqueue(setting[i]);
         }
-        int input = 0;
-        foreach (Intcodes4 comp in comps)
+        long input = 0;
+        foreach (IntcodeMachine comp in comps)
         {
           comp.input.Enqueue(input);
           comp.runToEnd();
@@ -363,13 +252,13 @@ namespace advent
         
         results.Add(input);
       }
-      Console.WriteLine($"Part 1 result: {results.Max()}");
+      Console.WriteLine($"Part 1 result: {results.Max()}"); // Part 1. Answer: 117312
 
       settings = GetPermutations(new int[] { 5, 6, 7, 8, 9 }, 5).Select(x => x.ToArray());
-      results = new List<int>();
+      results = new List<long>();
       foreach (int[] setting in settings)
       {
-        Intcodes4[] comps = Enumerable.Range(0, 5).Select(x => new Intcodes4(inputs, x + 1, false)).ToArray();
+        IntcodeMachine[] comps = Enumerable.Range(0, 5).Select(x => new IntcodeMachine(inputs, x + 1, false)).ToArray();
 
         for (int i = 0; i < comps.Count(); i++)
         {
@@ -383,12 +272,12 @@ namespace advent
         while (incomplete)
         {
           incomplete = false;
-          foreach (Intcodes4 comp in comps) incomplete |= comp.step();
+          foreach (IntcodeMachine comp in comps) incomplete |= comp.step();
         }
 
         results.Add(comps[comps.Count() - 1].output.Dequeue());
       }
-      Console.WriteLine($"Part 2 result: {results.Max()}");
+      Console.WriteLine($"Part 2 result: {results.Max()}"); // Part 2. Answer: 1336480
     }
 
     static IEnumerable<IEnumerable<int>> GetPermutations(int[] list, int length)
@@ -398,259 +287,6 @@ namespace advent
       return GetPermutations(list, length - 1)
           .SelectMany(x => list.Where(e => !x.Contains(e)),
               (x1, x2) => x1.Concat(new int[] { x2 }));
-    }
-
-    static int? intcodes3(List<int> instructions, int[] inputs, bool returnOnFirstOutput)
-    {
-      int read = 0;
-      int i = 0;
-      while (i < instructions.Count)
-      {
-        int[] instruction = instructions[i].ToString().PadLeft(5, '0').Select(c => (int)char.GetNumericValue(c)).ToArray();
-        string modeThird = instruction[0] == 0 ? "pos" : "imm";
-        string modeSecond = instruction[1] == 0 ? "pos" : "imm";
-        string modeFirst = instruction[2] == 0 ? "pos" : "imm";
-        int op = int.Parse(string.Concat(instruction[3], instruction[4]));
-
-        int input1, input2, target;
-        switch (op)
-        {
-          case 1: // addition
-            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
-            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
-            instructions[target] = input1 + input2;
-            i += 4;
-            break;
-          case 2: // multiplication
-            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
-            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
-            instructions[target] = input1 * input2;
-            i += 4;
-            break;
-          case 3: // read
-            int consoleInput;
-            if (inputs != null && read < inputs.Length)
-            {
-              consoleInput = inputs[read];
-              read++;  
-            }
-            else
-            {
-              Console.Write("Enter input:");
-              if (!int.TryParse(Console.ReadLine(), out consoleInput)) throw new Exception("Invalid input, should be integer");
-            }
-            target = modeFirst == "pos" ? instructions[i + 1] : throw new Exception("Target should never be in immediate mode");
-            instructions[target] = consoleInput;
-            i += 2;
-            break;
-          case 4: // write
-            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
-            if (returnOnFirstOutput)
-            {
-              return input1;
-            }
-            else
-            {
-              Console.WriteLine($"Output: {input1}");
-            }
-            i += 2;
-            break;
-          case 5: // jump-if-true
-            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
-            if (input1 != 0)
-            {
-              i = input2;
-            }
-            else
-            {
-              i += 3;
-            }
-            break;
-          case 6: // jump-if-false
-            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
-            if (input1 == 0)
-            {
-              i = input2;
-            }
-            else
-            {
-              i += 3;
-            }
-            break;
-          case 7: // less than
-            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
-            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
-            if (input1 < input2)
-            {
-              instructions[target] = 1;
-            }
-            else
-            {
-              instructions[target] = 0;
-            }
-            i += 4;
-            break;
-          case 8: // equals
-            input1 = modeFirst == "pos" ? instructions[instructions[i + 1]] : instructions[i + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[i + 2]] : instructions[i + 2];
-            target = modeThird == "pos" ? instructions[i + 3] : throw new Exception("Target should never be in immediate mode");
-            if (input1 == input2)
-            {
-              instructions[target] = 1;
-            }
-            else
-            {
-              instructions[target] = 0;
-            }
-            i += 4;
-            break;
-          case 99:
-            Console.WriteLine("Halting...");
-            return null;
-          default:
-            throw new Exception($"Invalid op-code: {op}");
-        }
-      }
-      return null;
-    }
-
-    class Intcodes4 {
-      private int id;
-      private bool debug;
-      private bool halted = false;
-      private int[] instructions;
-      private int cnt = 0;
-      public Queue<int> input = new Queue<int>();
-      public Queue<int> output = new Queue<int>();
-
-      public Intcodes4(int[] input, int id, bool debug)
-      {
-        instructions = input.ToArray(); //Copying input-array
-        this.id = id;
-        this.debug = debug;
-      }
-
-      public void runToEnd()
-      {
-        bool incomplete = true;
-        while (incomplete)
-        {
-          incomplete = this.step();
-        }
-      }
-
-      public bool step()
-      {
-        if (halted) return false;
-        if (debug) Console.WriteLine($"Machine #{id}: Running instruction #{cnt}");
-        int[] instruction = instructions[cnt].ToString().PadLeft(5, '0').Select(c => (int)char.GetNumericValue(c)).ToArray();
-        string modeThird = instruction[0] == 0 ? "pos" : "imm";
-        string modeSecond = instruction[1] == 0 ? "pos" : "imm";
-        string modeFirst = instruction[2] == 0 ? "pos" : "imm";
-        int op = int.Parse(string.Concat(instruction[3], instruction[4]));
-
-        int input1, input2, target;
-        switch (op)
-        {
-          case 1: // addition
-            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
-            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
-            instructions[target] = input1 + input2;
-            cnt += 4;
-            break;
-          case 2: // multiplication
-            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
-            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
-            instructions[target] = input1 * input2;
-            cnt += 4;
-            break;
-          case 3: // read
-            int consoleInput;
-            if (input.Count > 0)
-            {
-              consoleInput = input.Dequeue();
-              target = modeFirst == "pos" ? instructions[cnt + 1] : throw new Exception("Target should never be in immediate mode");
-              instructions[target] = consoleInput;
-              cnt += 2;
-            }
-            else
-            {
-              if (debug) Console.WriteLine($"Machine #{id}: Waiting for input");
-            }
-            break;
-          case 4: // write
-            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
-            output.Enqueue(input1);
-            cnt += 2;
-            break;
-          case 5: // jump-if-true
-            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
-            if (input1 != 0)
-            {
-              cnt = input2;
-            }
-            else
-            {
-              cnt += 3;
-            }
-            break;
-          case 6: // jump-if-false
-            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
-            if (input1 == 0)
-            {
-              cnt = input2;
-            }
-            else
-            {
-              cnt += 3;
-            }
-            break;
-          case 7: // less than
-            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
-            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
-            if (input1 < input2)
-            {
-              instructions[target] = 1;
-            }
-            else
-            {
-              instructions[target] = 0;
-            }
-            cnt += 4;
-            break;
-          case 8: // equals
-            input1 = modeFirst == "pos" ? instructions[instructions[cnt + 1]] : instructions[cnt + 1];
-            input2 = modeSecond == "pos" ? instructions[instructions[cnt + 2]] : instructions[cnt + 2];
-            target = modeThird == "pos" ? instructions[cnt + 3] : throw new Exception("Target should never be in immediate mode");
-            if (input1 == input2)
-            {
-              instructions[target] = 1;
-            }
-            else
-            {
-              instructions[target] = 0;
-            }
-            cnt += 4;
-            break;
-          case 99:
-            if (debug) Console.WriteLine($"Machine #{id}: Halting...");
-            halted = true;
-            return false;
-          default:
-            throw new Exception($"Invalid op-code: {op}");
-        }
-        return true;
-      }
     }
 
     static void day8()
@@ -733,208 +369,15 @@ namespace advent
     static void day9()
     {
       long[] inputs = getInputs("./day9/input.txt")[0].Split(',').Select(x => long.Parse(x)).ToArray();
-      Intcodes5 machine = new Intcodes5(inputs);
+      IntcodeMachine machine = new IntcodeMachine(inputs);
       machine.input.Enqueue(1);
       machine.runToEnd();
-      machine.printOutput(); // Part 1
+      machine.printOutput(); // Part 1. Answer: 2171728567 
 
-      machine = new Intcodes5(inputs);
+      machine = new IntcodeMachine(inputs);
       machine.input.Enqueue(2);
       machine.runToEnd();
-      machine.printOutput(); // Part2
-    }
-
-    class Intcodes5 {
-      private int id;
-      private bool verbose;
-      private bool halted = false;
-      private long[] memory;
-      private long cnt = 0;
-      public Queue<long> input = new Queue<long>();
-      public Queue<long> output = new Queue<long>();
-      private long relBase = 0;
-
-      public Intcodes5(long[] input, int id = 0, bool verbose = false)
-      {
-        memory = input.ToArray(); //Copying input-array
-        this.id = id;
-        this.verbose = verbose;
-      }
-
-      public void runToEnd()
-      {
-        bool incomplete = true;
-        while (incomplete)
-        {
-          incomplete = this.step();
-        }
-      }
-
-      // Number == which numbered input. E.g, 1 == input1, 2 == input2
-      private long getParam(long mode, int number)
-      {
-        if (verbose) Console.WriteLine($"Getting parameter. Mode: {mode}, number: {number}");
-        long pos;
-        switch (mode)
-        {
-          case 0: // pos
-            pos = memory[cnt + number];
-            break;
-          case 1: // imm
-            pos = cnt + number;
-            break;
-          case 2: // rel
-            pos = relBase + memory[cnt + number];
-            break;
-          default:
-            throw new Exception("Invalid mode");
-        }
-        if (memory.Length <= pos) return 0; // Getting param out of range of memory
-        return memory[pos];
-      }
-
-      private void setMemory(long mode, int number, long value)
-      {
-        if (verbose) Console.WriteLine($"Setting value: {value} at target position. Mode: {mode}, number: {number}");
-        long targetPos;
-        switch (mode)
-        {
-          case 0: // pos
-            targetPos =  memory[cnt + number];
-            break;
-          case 1: // imm
-            throw new Exception("Target should never be in immidiate mode");
-          case 2: // rel
-            targetPos =  relBase + memory[cnt + number];
-            break;
-          default:
-            throw new Exception("Invalid mode");
-        }
-        if (memory.Length <= targetPos) // Extend memory
-        {
-          long[] temp = new long[targetPos + 1];
-          Array.Copy(memory, temp, memory.Length);
-          memory = temp;
-        }
-        memory[targetPos] = value;
-      }
-
-      // Returns true while incomplete. Returns false if halted.
-      public bool step()
-      {
-        if (halted) return false;
-        if (verbose) Console.WriteLine($"Machine #{id}: Running instruction #{cnt}");
-        long[] instruction = memory[cnt].ToString().PadLeft(5, '0').Select(c => (long)char.GetNumericValue(c)).ToArray();
-        long modeThird = instruction[0];
-        long modeSecond = instruction[1];
-        long modeFirst = instruction[2];
-        
-        int op = int.Parse(string.Concat(instruction[3], instruction[4]));
-        long param1, param2;
-        switch (op)
-        {
-          case 1: // addition
-            param1 = getParam(modeFirst, 1);
-            param2 = getParam(modeSecond, 2);
-            setMemory(modeThird, 3, param1 + param2);
-            cnt += 4;
-            break;
-          case 2: // multiplication
-            param1 = getParam(modeFirst, 1);
-            param2 = getParam(modeSecond, 2);
-            setMemory(modeThird, 3, param1 * param2);
-            cnt += 4;
-            break;
-          case 3: // read
-            long consoleInput;
-            if (input.Count > 0)
-            {
-              consoleInput = input.Dequeue();
-              setMemory(modeFirst, 1, consoleInput);
-              cnt += 2;
-            }
-            else
-            {
-              if (verbose) Console.WriteLine($"Machine #{id}: Waiting for input");
-            }
-            break;
-          case 4: // write
-            param1 = getParam(modeFirst, 1);
-            output.Enqueue(param1);
-            cnt += 2;
-            break;
-          case 5: // jump-if-true
-            param1 = getParam(modeFirst, 1);
-            param2 = getParam(modeSecond, 2);
-            if (param1 != 0)
-            {
-              cnt = param2;
-            }
-            else
-            {
-              cnt += 3;
-            }
-            break;
-          case 6: // jump-if-false
-            param1 = getParam(modeFirst, 1);
-            param2 = getParam(modeSecond, 2);
-            if (param1 == 0)
-            {
-              cnt = param2;
-            }
-            else
-            {
-              cnt += 3;
-            }
-            break;
-          case 7: // less than
-            param1 = getParam(modeFirst, 1);
-            param2 = getParam(modeSecond, 2);
-            if (param1 < param2)
-            {
-              setMemory(modeThird, 3, 1);
-            }
-            else
-            {
-              setMemory(modeThird, 3, 0);
-            }
-            cnt += 4;
-            break;
-          case 8: // equals
-            param1 = getParam(modeFirst, 1);
-            param2 = getParam(modeSecond, 2);
-            if (param1 == param2)
-            {
-              setMemory(modeThird, 3, 1);
-            }
-            else
-            {
-              setMemory(modeThird, 3, 0);
-            }
-            cnt += 4;
-            break;
-          case 9: // alter relative base
-            param1 = getParam(modeFirst, 1);
-            relBase += param1;
-            cnt += 2;
-            break;
-          case 99: // halt
-            if (verbose) Console.WriteLine($"Machine #{id}: Halting...");
-            halted = true;
-            return false;
-          default:
-            throw new Exception($"Invalid op-code: {op}");
-        }
-        return true;
-      }
-
-      public void printOutput()
-      {
-        foreach (long output in output)
-        {
-          Console.WriteLine($"Output: {output}");
-        }
-      }
+      machine.printOutput(); // Part2. Answer: 49815
     }
 
     static List<string> getInputs(string path)
