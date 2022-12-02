@@ -59,79 +59,35 @@ class Program
     List<string> inputs = File.ReadAllLines("./inputs/day2").ToList();
     int score = 0;
 
+    var matrix = new Dictionary<char, Dictionary<char, int>>()
+    {
+      { 'A', new Dictionary<char, int>() {{ 'X', 4 }, { 'Y', 8 }, { 'Z', 3 }} },
+      { 'B', new Dictionary<char, int>() {{ 'X', 1 }, { 'Y', 5 }, { 'Z', 9 }} },
+      { 'C', new Dictionary<char, int>() {{ 'X', 7 }, { 'Y', 2 }, { 'Z', 6 }} },
+    };
+
     foreach (string input in inputs)
     {
-      string[] moves = input.Split(' ');
-
-      switch (moves)
-      {
-        case ["A", "X"]:
-          score += 4;
-          break;
-        case ["B", "X"]:
-          score += 1;
-          break;
-        case ["C", "X"]:
-          score += 7;
-          break;
-        case ["A", "Y"]:
-          score += 8;
-          break;
-        case ["B", "Y"]:
-          score += 5;
-          break;
-        case ["C", "Y"]:
-          score += 2;
-          break;
-        case ["A", "Z"]:
-          score += 3;
-          break;
-        case ["B", "Z"]:
-          score += 9;
-          break;
-        case ["C", "Z"]:
-          score += 6;
-          break;
-      }
+      char[] moves = input.Split(' ').Select(char.Parse).ToArray();
+      score += matrix[moves[0]][moves[1]];
     }
+
     Console.WriteLine(score);
     score = 0;
 
+    matrix = new Dictionary<char, Dictionary<char, int>>()
+    {
+      { 'A', new Dictionary<char, int>() {{ 'X', 3 }, { 'Y', 4 }, { 'Z', 8 }} },
+      { 'B', new Dictionary<char, int>() {{ 'X', 1 }, { 'Y', 5 }, { 'Z', 9 }} },
+      { 'C', new Dictionary<char, int>() {{ 'X', 2 }, { 'Y', 6 }, { 'Z', 7 }} },
+    };
+
     foreach (string input in inputs)
     {
-      string[] moves = input.Split(' ');
-
-      switch (moves)
-      {
-        case ["A", "X"]:
-          score += 3;
-          break;
-        case ["B", "X"]:
-          score += 1;
-          break;
-        case ["C", "X"]:
-          score += 2;
-          break;
-        case ["A", "Y"]:
-          score += 4;
-          break;
-        case ["B", "Y"]:
-          score += 5;
-          break;
-        case ["C", "Y"]:
-          score += 6;
-          break;
-        case ["A", "Z"]:
-          score += 8;
-          break;
-        case ["B", "Z"]:
-          score += 9;
-          break;
-        case ["C", "Z"]:
-          score += 7;
-          break;
-      }
+      char[] moves = input.Split(' ').Select(char.Parse).ToArray();
+      score += matrix[moves[0]][moves[1]];
     }
+
     Console.WriteLine(score);
   }
 
