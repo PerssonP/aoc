@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Reflection;
 
 namespace _2022;
@@ -25,7 +27,7 @@ class Program
 
   public static void Day1()
   {
-    List<string> inputs = File.ReadAllLines("./inputs/day1").ToList();
+    List<string> inputs = File.ReadAllLines("./inputs/day1.txt").ToList();
     List<int> elfCals = new List<int>(new int[] { 0 });
 
     foreach (string input in inputs)
@@ -55,7 +57,7 @@ class Program
 
   public static void Day2()
   {
-    List<string> inputs = File.ReadAllLines("./inputs/day2").ToList();
+    List<string> inputs = File.ReadAllLines("./inputs/day2.txt").ToList();
     int score = 0;
 
     var matrix = new Dictionary<char, Dictionary<char, int>>()
@@ -92,7 +94,7 @@ class Program
 
   public static void Day3()
   {
-    List<string> inputs = File.ReadAllLines("./inputs/day3").ToList();
+    List<string> inputs = File.ReadAllLines("./inputs/day3.txt").ToList();
 
     int sumComps = 0, sumBadges = 0;
     List<string> work = new List<string>(3);
@@ -121,7 +123,7 @@ class Program
 
   public static void Day4()
   {
-    List<string> inputs = File.ReadAllLines("./inputs/day4").ToList();
+    List<string> inputs = File.ReadAllLines("./inputs/day4.txt").ToList();
 
     int fullyContainedCnt = 0;
     int anyOverlapCnt = 0;
@@ -140,5 +142,46 @@ class Program
 
     Console.WriteLine(fullyContainedCnt);
     Console.WriteLine(anyOverlapCnt);
+  }
+
+  public static void Day5()
+  {
+    string[] inputs = File.ReadAllLines("./inputs/day5.txt");
+    var initial = inputs.TakeWhile((input) => !string.IsNullOrEmpty(input));
+    var instructions = inputs.SkipWhile((input) => !string.IsNullOrEmpty(input)).Skip(1);
+    Stack<char>[] stacks = new Stack<char>[int.Parse(initial.Last()[^2].ToString())];
+    for (int i = 0; i < stacks.Length; i++) stacks[i] = new Stack<char>();
+
+    /* Set up initial stacks */
+    foreach (string line in initial.Reverse().Skip(1))
+    {
+      for (int i = 1; i < line.Length; i += 4)
+      {
+        char ch = line[i];
+        if (ch != ' ') stacks[i / 4].Push(ch);
+      }
+    }
+
+    /* Part 1 */
+    /*
+    foreach (string line in instructions)
+    {
+      string[] instruction = line.Split(' ');
+      int amount = int.Parse(instruction[1]), from = int.Parse(instruction[3]) - 1, to = int.Parse(instruction[5]) - 1;
+      for (int i = 0; i < amount; i++) stacks[to].Push(stacks[from].Pop());
+    }
+    Console.WriteLine(stacks.Select(stack => stack.Pop()).ToArray());
+    */
+
+    /* Part 2 */
+    foreach (string line in instructions)
+    {
+      string[] instruction = line.Split(' ');
+      int amount = int.Parse(instruction[1]), from = int.Parse(instruction[3]) - 1, to = int.Parse(instruction[5]) - 1;
+      Stack<char> inbetween = new Stack<char>();
+      for (int i = 0; i < amount; i++) inbetween.Push(stacks[from].Pop());
+      for (int i = 0; i < amount; i++) stacks[to].Push(inbetween.Pop());
+    }
+    Console.WriteLine(stacks.Select(stack => stack.Pop()).ToArray());
   }
 }
