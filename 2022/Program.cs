@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Reflection;
 
 namespace _2022;
@@ -183,5 +181,34 @@ class Program
       for (int i = 0; i < amount; i++) stacks[to].Push(inbetween.Pop());
     }
     Console.WriteLine(stacks.Select(stack => stack.Pop()).ToArray());
+  }
+
+  public static void Day6()
+  {
+    string input = File.ReadAllText("./inputs/day6.txt");
+
+    char[] charsP1 = input.Take(4).ToArray();
+    for (int i = 4; i < input.Length; i++)
+    {
+      charsP1[i % 4] = input[i];
+      HashSet<char> uniques = new HashSet<char>();
+      if (charsP1.All(uniques.Add)) // HashSet.Add() returns false if item cannot be added because it's not unique
+      {
+        Console.WriteLine(i + 1);
+        break;
+      }
+    }
+
+    char[] charsP2 = input.Take(14).ToArray();
+    for (int i = 14; i < input.Length; i++)
+    {
+      charsP2[i % 14] = input[i];
+      HashSet<char> uniques = new HashSet<char>();
+      if (charsP2.All(uniques.Add))
+      {
+        Console.WriteLine(i + 1);
+        break;
+      }
+    }
   }
 }
