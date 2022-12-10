@@ -20,7 +20,7 @@ public class Day9
     {
       char direction = line[0];
       int amount = int.Parse(line.Split(' ')[1]);
-      Func<(int x, int y), (int, int)> command = direction switch
+      Func<(int x, int y), (int, int)> moveHead = direction switch
       {
         'R' => pos => (pos.x + 1, pos.y),
         'L' => pos => (pos.x - 1, pos.y),
@@ -31,7 +31,7 @@ public class Day9
 
       foreach (int _ in Enumerable.Range(0, amount))
       {
-        headPos = command.Invoke(headPos);
+        headPos = moveHead.Invoke(headPos);
 
         foreach (int i in Enumerable.Range(0, amountOfTails))
         {
