@@ -5,7 +5,6 @@ class Program
 {
   static void Main(string[] args)
   {
-    Day8();
     if (args.Length > 0 && int.TryParse(args[0], out int nbr))
     {
       MethodInfo? method = typeof(Program).GetMethod($"Day{nbr}");
@@ -255,8 +254,8 @@ class Program
   {
     int[][] input = File.ReadAllLines("./inputs/day8.txt").Select(line => line.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
 
+    // Part 1
     var visableTrees = new HashSet<(int, int)>();
-
     /* East - West */
     for (int i = 0; i < input.Length; i++)
     {
@@ -299,57 +298,53 @@ class Program
 
     Console.WriteLine(visableTrees.Count);
 
-    /*
-    string[] input = File.ReadAllLines("./inputs/day8.txt");
-    int[,] forest = new int[input.Length, input[0].Length];
-    for (int i = 0; i < input.Length; i++)
-        for (int j = 0; j < input[0].Length; j++)
-            forest[i, j] = int.Parse(input[i][j].ToString());
+    // Part 2
 
-    for (int i = 1; i < forest.GetLength(0) - 1; i++)
+    string[] input2 = File.ReadAllLines("./inputs/day8.txt");
+    int[,] forest = new int[input2[0].Length, input2.Length];
+    for (int i = 0; i < input2.Length; i++)
+      for (int j = 0; j < input2[0].Length; j++)
+        forest[j, i] = int.Parse(input2[i][j].ToString());
+
+    List<int> scores = new();
+
+    for (int x = 1; x < forest.GetLength(0); x++)
     {
-        for (int j = 1; j < forest.GetLength(1) - 1; j++)
+      for (int y = 1; y < forest.GetLength(1); y++)
+      {
+        int tree = forest[x, y];
+        int amountW = 0, amountE = 0, amountN = 0, amountS = 0;
+
+        for (int k = x - 1; k >= 0; k--) // West
         {
-            int tree = forest[i, j];
-            bool visable = false;
-
-            foreach (int k in Enumerable.Range(0, i)) // East
-            {
-                int treeToCheck = forest[i, k];
-                if (tree > forest[i, k])
-                {
-                    visable = true;
-                }
-            }
-
-            foreach (int k in Enumerable.Range(i + 1, forest.GetLength(1) - (i - 1))) // West
-            {
-                int treeToCheck = forest[i, k];
-                if (tree > forest[i, k])
-                {
-                    visable = true;
-                }
-            }
-
-            foreach (int k in Enumerable.Range(0, j)) // North
-            {
-                int treeToCheck = forest[k, j];
-                if (k != i && tree > forest[k, j])
-                {
-                    visable = true;
-                }
-            }
-
-            foreach (int k in Enumerable.Range(j + 1, forest.GetLength(0) - (j - 1))) // South
-            {
-                int treeToCheck = forest[k, j];
-                if (k != i && tree > forest[k, j])
-                {
-                    visable = true;
-                }
-            }
+          amountW++;
+          if (tree <= forest[k, y]) break;
         }
-    }*/
+
+        for (int k = x + 1; k < forest.GetLength(0); k++) // East
+        {
+          amountE++;
+          if (tree <= forest[k, y]) break;
+
+        }
+
+        for (int k = y - 1; k >= 0; k--) // North
+        {
+          amountN++;
+          if (tree <= forest[x, k]) break;
+        }
+
+        for (int k = y + 1; k < forest.GetLength(1); k++) // South
+        {
+          amountS++;
+          if (tree <= forest[x, k]) break;
+        }
+
+        scores.Add(amountW * amountE * amountN * amountS);
+      }
+    }
+
+    Console.WriteLine(scores.Max());
   }
 
 }
