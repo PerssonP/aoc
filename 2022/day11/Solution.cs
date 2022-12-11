@@ -4,12 +4,6 @@ public class Day11
 {
   public static void Solve()
   {
-    Console.WriteLine($"P1: {MonkeyBusiness(20)}");
-    //Console.WriteLine($"P2: {MonkeyBusiness(10000, false)}");
-  }
-
-  private static long MonkeyBusiness(int amountRounds)
-  {
     string[] input = File.ReadAllLines("./day11/input.txt");
 
     List<Monkey> monkeys = new();
@@ -25,6 +19,32 @@ public class Day11
       ));
     }
 
+    Console.WriteLine($"P1: {MonkeyBusiness(monkeys, 20, worry => worry / 3)}");
+
+    int factor = 1;
+    monkeys = new();
+    foreach (string[] instructions in input.Chunk(7))
+    {
+      int test = int.Parse(instructions[3].Split(' ')[^1]);
+      factor *= test;
+
+      monkeys.Add(new Monkey(
+        id: int.Parse(instructions[0].Split(' ')[1][..^1].ToString()),
+        items: instructions[1].Split(':')[1].Split(',').Select(long.Parse),
+        operators: instructions[2].Split('=')[1].Trim().Split(' '),
+        testDivisibleBy: test,
+        ifTrue: int.Parse(instructions[4].Split(' ')[^1]),
+        ifFalse: int.Parse(instructions[5].Split(' ')[^1])
+      ));
+    }
+
+    Console.WriteLine($"P2: {MonkeyBusiness(monkeys, 10000, worry => worry % factor)}");
+  }
+
+  private static long MonkeyBusiness(List<Monkey> monkeys, int amountRounds, Func<long, long> manageWorryLevel)
+  {
+
+
     foreach (int i in Enumerable.Range(0, amountRounds))
     {
       foreach (Monkey monkey in monkeys)
@@ -33,7 +53,7 @@ public class Day11
         {
           long item = monkey.ItemQueue.Dequeue();
           item = monkey.Operation(item);
-          item /= 3;
+          item = manageWorryLevel(item);
           int monkeyToThrowTo = monkey.Test(item);
           monkeys[monkeyToThrowTo].ItemQueue.Enqueue(item);
         }
