@@ -12,19 +12,18 @@ public class Day2
     int validGamesSum = 0, minCubesSum = 0;
     foreach (string line in inputs)
     {
-      // Part 1
       string pattern = @"\d+ red|\d+ blue|\d+ green";
       MatchCollection matches = Regex.Matches(line, pattern);
 
+      // Part 1
       bool invalidGame = matches
-        .Where(m => m.Value.Split(' ') switch
+        .Any(m => m.Value.Split(' ') switch
         {
           [var n, "red"] => int.Parse(n) > 12,
           [var n, "green"] => int.Parse(n) > 13,
           [var n, "blue"] => int.Parse(n) > 14,
           _ => throw new Exception()
-        })
-        .Any();
+        });
       if (!invalidGame) validGamesSum += int.Parse(line.Split(' ')[1][..^1]);
 
       // Part 2
