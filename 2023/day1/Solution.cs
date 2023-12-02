@@ -1,13 +1,9 @@
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace Y2023;
 
 public class Day1
 {
-  
   public static void Solve()
   {
     string[] inputs = File.ReadAllLines("./day1/input.txt");
@@ -22,7 +18,8 @@ public class Day1
     // Part 2
     string pattern = @"one|two|three|four|five|six|seven|eight|nine|\d";
     int part2 = inputs
-      .Select(line => int.Parse(ConvertMatchToDigit(Regex.Match(line, pattern).Value) + ConvertMatchToDigit(Regex.Match(line, pattern, RegexOptions.RightToLeft).Value)))
+      .Select(line => int.Parse(
+        ConvertMatchToDigit(Regex.Match(line, pattern).Value) + ConvertMatchToDigit(Regex.Match(line, pattern, RegexOptions.RightToLeft).Value)))
       .Sum();
 
     Console.WriteLine(part2);
