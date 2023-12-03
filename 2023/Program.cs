@@ -1,25 +1,30 @@
-﻿int nbr = 0;
+﻿using BenchmarkDotNet.Running;
 
-if (args.Length == 0 && DateTime.Now.Month == 12)
+if (args.Length == 0)
 {
-  nbr = DateTime.Now.Day;
-}
-else if (args.Length > 0)
-{
-  nbr = int.Parse(args[0]);
-}
-else
-{
-  Console.WriteLine("Enter number of day to run as the first argument");
+  Console.WriteLine("Enter command (solve/benchmark) followed by the requested day to run");
   return;
 }
 
-Type? type = Type.GetType($"Y2023.Day{nbr}");
+string command = args[0];
+int day = args.Length > 1 ? int.Parse(args[1]) : DateTime.Now.Day;
+Type? type = Type.GetType($"Y2023.Day{day}");
+
 if (type == null)
 {
-  Console.WriteLine("Day not found");
+  Console.WriteLine($"Day {day} not found");
+  return;
 }
-else
+
+switch (command)
 {
-  type.GetMethod("Solve")!.Invoke(null, null);
+  case "solve":
+    type.GetMethod("Solve")!.Invoke(null, null);
+    break;
+  case "benchmark":
+    var summary = BenchmarkRunner.Run(type.Assembly);
+    Console.WriteLine(summary);
+    break;
+  default:
+    throw new NotImplementedException("Invalid command");
 }
