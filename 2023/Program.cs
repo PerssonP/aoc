@@ -19,7 +19,9 @@ if (type == null)
 switch (command)
 {
   case "solve":
-    type.GetMethod("Solve")!.Invoke(null, null);
+    var instance = Activator.CreateInstance(type);
+    var method = type.GetMethod("Solve");
+    method!.Invoke(instance, null);
     break;
   case "benchmark":
     var summary = BenchmarkRunner.Run(type.Assembly);
