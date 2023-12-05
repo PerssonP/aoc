@@ -16,4 +16,10 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="day*/input.txt" >
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
